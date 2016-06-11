@@ -66,15 +66,26 @@ public class MyTreeMap<K, V> implements Map<K, V> {
 		if (target == null) {
             throw new NullPointerException();
 	    }
-		
 		// something to make the compiler happy
 		@SuppressWarnings("unchecked")
 		Comparable<? super K> k = (Comparable<? super K>) target;
-		
+        Node node = root;
 		// the actual search
         // TODO: Fill this in.
-        return null;
+		while (node != null) {
+        	if (k.compareTo(node.key) == 0) {
+        		return node;
+        	}
+        	else if (k.compareTo(node.key) < 0) {
+        		node = node.left;
+        	}
+        	else if (k.compareTo(node.key) > 0) {
+        		node = node.right;
+        	}
+		}		
+		return null;
 	}
+
 
 	/**
 	 * Compares two keys or two values, handling null correctly.
@@ -91,8 +102,32 @@ public class MyTreeMap<K, V> implements Map<K, V> {
 	}
 
 	@Override
+	/**
+	 * we've provided a helper method, equals, that compares target and a 
+	 * given key. Note that the values in the tree (as opposed to the keys) 
+	 * are not necessarily comparable, so we can't use compareTo; 
+	 * we have to invoke equals on target.
+	 */
+	
 	public boolean containsValue(Object target) {
-		return false;
+		return containsValue(target, root);
+	}
+	
+	public boolean containsValue(Object target, Node node) {
+		if(node != null){
+	        if(equals(target, node.value)){
+	           return true;
+	        } else {
+	            if(node.left == null) {
+	                return containsValue(target, node.right);
+	            }
+	            else {
+	            	return containsValue(target, node.left);
+	            }
+	         }
+	    } else {
+	        return false;
+	    }
 	}
 
 	@Override
@@ -118,9 +153,22 @@ public class MyTreeMap<K, V> implements Map<K, V> {
 	public Set<K> keySet() {
 		Set<K> set = new LinkedHashSet<K>();
         // TODO: Fill this in.
+		keySet(set, root);
 		return set;
 	}
-
+	
+	public void keySet(Set<K> set, Node node) {
+		if(node != null){
+	        keySet(set, node.left);
+	        set.add(node.key);
+	        keySet(set, node.right);
+	    }
+		else {
+	        return;
+	    }
+	}
+	
+	
 	@Override
 	public V put(K key, V value) {
 		if (key == null) {
@@ -134,9 +182,40 @@ public class MyTreeMap<K, V> implements Map<K, V> {
 		return putHelper(root, key, value);
 	}
 
+	/*
+	Fill in putHelper so it searches the tree and:
+
+    	If key is already in the tree, it replaces the old value with the new, 
+    and returns the old value.
+    	If key is not in the tree, it creates a new node, finds the right place 
+    to add it, and returns null.
+
+	 */
 	private V putHelper(Node node, K key, V value) {
         // TODO: Fill this in.
-        return null;
+		Comparable<? super K> k = (Comparable<? super K>) key;
+		int i = k.compareTo(node.key);
+		if (i > 0) {
+			if (node.right != null) 
+				return putHelper(node.right, key, value);
+			else {
+				node.right = new Node(key, value);
+				size++;
+				return null;
+			}
+		}
+		if (i < 0) {
+			if (node.left != null) 
+				return putHelper(node.left, key, value);
+			else {
+				node.left = new Node(key, value);
+				size++;
+				return null;
+			}
+		}
+		V temp = node.value;
+		node.value = value;
+		return temp;
 	}
 
 	@Override
@@ -184,6 +263,7 @@ public class MyTreeMap<K, V> implements Map<K, V> {
 		for (String key: map.keySet()) {
 			System.out.println(key + ", " + map.get(key));
 		}
+		map.containsValue(5);
 	}
 
 	/**
